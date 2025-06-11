@@ -12,6 +12,9 @@ function App() {
   const hiddenRoutes = ['/welcome'];
   const navigate = useNavigate();
   const isHiddenRoute = hiddenRoutes.includes(location.pathname);
+  if (!localStorage.getItem("user")) {
+    navigate("/welcome");
+  }
   return (
     <>
       {!isHiddenRoute && (

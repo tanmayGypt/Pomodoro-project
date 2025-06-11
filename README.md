@@ -37,3 +37,5 @@ This encourages deep focus, mental clarity, and sustainable work habits.
 
 ---
 
+## 📂 Folder Structure
+
