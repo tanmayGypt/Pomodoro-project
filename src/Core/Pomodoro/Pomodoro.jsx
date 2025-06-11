@@ -5,8 +5,8 @@ import Toast from '../../Common/Toast';
 import alarmSound from '../../../public/alarm.mp3';
 
 const Pomodoro = () => {
-    const [minutes, setMinutes] = useState(0);
-    const [seconds, setSeconds] = useState(2);
+    const [minutes, setMinutes] = useState(30);
+    const [seconds, setSeconds] = useState(0);
     const [isActive, setIsActive] = useState(false);
     const [isWorking, setIsWorking] = useState(true);
     const timerRef = useRef(null);
