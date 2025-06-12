@@ -1,10 +1,20 @@
 import { useMemo, useState } from 'react';
-import { useTable } from 'react-table';
+import { useTable, useGlobalFilter } from 'react-table';
+
+// const data = [
+//     { rating: 9, date: '2025-06-10', time: '14:30', message: 'Excellent support!' },
+//     { rating: 6, date: '2025-06-09', time: '11:00', message: 'Could be better.' },
+//     { rating: 8, date: '2025-06-08', time: '15:45', message: 'Very satisfied!' },
+//     { rating: 3, date: '2025-06-07', time: '09:20', message: 'Not great experience.icisiijsvnodfrijbojtejtjbbjeojosijoisrjojr' },
+//     { rating: null, date: '2025-06-06', time: '17:10', message: 'No comments.' },
+//     { rating: 10, date: '2025-06-05', time: '12:00', message: 'Perfect!' },
+//     { rating: 5, date: '2025-06-04', time: '10:30', message: 'Average session.' },
+// ];
 
 const SessionHistory = () => {
-    const [filterType, setFilterType] = useState('all');
+    const [filterType, setFilterType] = useState('all'); // all, good, bad
     const [selectedRating, setSelectedRating] = useState('');
-    const [data] = useState(() => {
+    const [data, setData] = useState(() => {
         const stored = localStorage.getItem('sessionFeedbacks');
         return stored ? JSON.parse(stored) : [];
     });
@@ -16,7 +26,7 @@ const SessionHistory = () => {
             if (selectedRating) return item.rating === parseInt(selectedRating);
             return true;
         });
-    }, [filterType, selectedRating, data]);
+    }, [filterType, selectedRating]);
 
     const columns = useMemo(() => [
         {
@@ -49,35 +59,6 @@ const SessionHistory = () => {
         rows,
         prepareRow
     } = useTable({ columns, data: filteredData });
-
-    // Export functions
-    const downloadJSON = () => {
-        const blob = new Blob([JSON.stringify(filteredData, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'session_feedback.json';
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    const downloadCSV = () => {
-        const headers = ['Rating', 'Date', 'Time', 'Message'];
-        const rows = filteredData.map(row =>
-            [row.rating ?? 'No rating', row.date, row.time, `"${row.message.replace(/"/g, '""')}"`]
-        );
-        const csvContent =
-            [headers, ...rows]
-                .map(e => e.join(','))
-                .join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'session_feedback.csv';
-        a.click();
-        URL.revokeObjectURL(url);
-    };
 
     return (
         <div className="max-w-6xl mx-auto mt-10 p-6 bg-white border border-gray-200 rounded shadow-sm">
@@ -116,21 +97,6 @@ const SessionHistory = () => {
                             <option key={i + 1} value={i + 1}>{i + 1}</option>
                         ))}
                     </select>
-                </div>
-
-                <div className="ml-auto flex gap-3 mt-4 md:mt-0">
-                    <button
-                        onClick={downloadJSON}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700"
-                    >
-                        Download JSON
-                    </button>
-                    <button
-                        onClick={downloadCSV}
-                        className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
-                    >
-                        Download CSV
-                    </button>
                 </div>
             </div>
 
