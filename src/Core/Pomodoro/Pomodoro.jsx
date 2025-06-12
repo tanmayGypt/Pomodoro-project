@@ -10,13 +10,10 @@ const Pomodoro = () => {
     const [isActive, setIsActive] = useState(false);
     const [isWorking, setIsWorking] = useState(true);
     const timerRef = useRef(null);
-    const audioRef = useRef(null); // ✅ Fixed: declare audio ref
+    const audioRef = useRef(null);
     const circumference = 2 * Math.PI * 90;
 
-    const workAnimations = ["👨‍💻 Working...", "📚 Studying...", "✍️ Writing...", "🔍 Researching..."];
-    const breakAnimations = ["🧘 Meditating", "☕ Coffee break", "🌿 Stretching", "🎵 Listening music"];
-    const [currentAnimation, setCurrentAnimation] = useState(workAnimations[0]);
-
+    const [currentAnimation, setCurrentAnimation] = useState("👨‍💻 Working...");
     const [showFeedback, setShowFeedback] = useState(false);
     const [rating, setRating] = useState('');
     const [review, setReview] = useState('');
@@ -67,14 +64,18 @@ const Pomodoro = () => {
 
     useEffect(() => {
         let blinkInterval;
+        const totalMinutes = minutes;
 
-        if (minutes === 25 || minutes === 4) {
-            const blinkMessage = minutes === 25 ? "⏰ Time to break!" : "⏰ Time to work!";
+        if(totalMinutes==5){
             blinkInterval = setInterval(() => {
                 setCurrentAnimation(prev => (prev === '' ? blinkMessage : ''));
-            }, 300);
+            }, 900);
         }
-
+        if (totalMinutes >= 5 && totalMinutes <= 30) {
+            setCurrentAnimation("⏰ Time to work!");
+        } else {
+            setCurrentAnimation("☕ Time to break!");
+        }
         return () => clearInterval(blinkInterval);
     }, [minutes]);
 
@@ -83,10 +84,11 @@ const Pomodoro = () => {
         setMinutes(30);
         setSeconds(0);
         setIsWorking(true);
-        setCurrentAnimation(workAnimations[0]);
+        setCurrentAnimation("⏰ Time to work!");
         setShowFeedback(false);
         setRating('');
         setReview('');
+        stopAlarm();
     };
 
     const toggleTimer = () => {
@@ -152,11 +154,9 @@ const Pomodoro = () => {
                 <h1 className="text-3xl font-bold text-red-600 mb-4">⏰ Time's Up!</h1>
             )}
 
-            {/* ✅ Added audio element */}
             <audio ref={audioRef} src={alarmSound} />
 
             <div className="relative w-64 h-64 mb-8">
-                {/* Timer Circle */}
                 <svg className="w-full h-full" viewBox="0 0 200 200">
                     <circle cx="100" cy="100" r="90" fill="none" stroke="#E5E7EB" strokeWidth="10" />
                 </svg>
