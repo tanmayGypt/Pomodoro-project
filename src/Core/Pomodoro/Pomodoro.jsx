@@ -66,10 +66,10 @@ const Pomodoro = () => {
         let blinkInterval;
         const totalMinutes = minutes;
 
-        if(totalMinutes==5){
+        if (totalMinutes == 5) {
             blinkInterval = setInterval(() => {
-                setCurrentAnimation(prev => (prev === '' ? blinkMessage : ''));
-            }, 900);
+                setCurrentAnimation(prev => (prev === '' ? "☕ Break is Coming..." : ''));
+            }, 1200);
         }
         if (totalMinutes >= 5 && totalMinutes <= 30) {
             setCurrentAnimation("⏰ Time to work!");
