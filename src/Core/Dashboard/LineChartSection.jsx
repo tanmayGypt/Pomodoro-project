@@ -10,8 +10,7 @@ const LineChartSection = ({ data }) => (
                     <XAxis dataKey="count" />
                     <YAxis domain={[0, 10]} />
                     <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="score" stroke="#4f46e5" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} name="Session Score" />
+                    <Line type="monotone" dataKey="score" stroke="#4f46e5" strokeWidth={3} name="Session Score" />
                 </LineChart>
             </ResponsiveContainer>
         </div>
