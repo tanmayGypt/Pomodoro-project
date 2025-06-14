@@ -1,18 +1,9 @@
 import { useMemo, useState } from 'react';
-import { useTable, useGlobalFilter } from 'react-table';
-
-// const data = [
-//     { rating: 9, date: '2025-06-10', time: '14:30', message: 'Excellent support!' },
-//     { rating: 6, date: '2025-06-09', time: '11:00', message: 'Could be better.' },
-//     { rating: 8, date: '2025-06-08', time: '15:45', message: 'Very satisfied!' },
-//     { rating: 3, date: '2025-06-07', time: '09:20', message: 'Not great experience.icisiijsvnodfrijbojtejtjbbjeojosijoisrjojr' },
-//     { rating: null, date: '2025-06-06', time: '17:10', message: 'No comments.' },
-//     { rating: 10, date: '2025-06-05', time: '12:00', message: 'Perfect!' },
-//     { rating: 5, date: '2025-06-04', time: '10:30', message: 'Average session.' },
-// ];
+import { useTable } from 'react-table';
+import { JsonToExcel } from 'react-json-to-excel';
 
 const SessionHistory = () => {
-    const [filterType, setFilterType] = useState('all'); // all, good, bad
+    const [filterType, setFilterType] = useState('all');
     const [selectedRating, setSelectedRating] = useState('');
     const [data, setData] = useState(() => {
         const stored = localStorage.getItem('sessionFeedbacks');
@@ -26,7 +17,7 @@ const SessionHistory = () => {
             if (selectedRating) return item.rating === parseInt(selectedRating);
             return true;
         });
-    }, [filterType, selectedRating]);
+    }, [filterType, selectedRating, data]);
 
     const columns = useMemo(() => [
         {
@@ -64,43 +55,68 @@ const SessionHistory = () => {
         <div className="max-w-6xl mx-auto mt-10 p-6 bg-white border border-gray-200 rounded shadow-sm">
             <h1 className="text-2xl font-semibold mb-4 text-gray-800">Rating Reviews</h1>
 
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4 mb-6">
-                <div>
-                    <label className="block text-sm text-gray-600 mb-1">Filter by Type</label>
-                    <select
-                        value={filterType}
-                        onChange={(e) => {
-                            setFilterType(e.target.value);
-                            setSelectedRating('');
-                        }}
-                        className="border px-3 py-2 rounded shadow-sm"
-                    >
-                        <option value="all">All</option>
-                        <option value="good">Good (7+)</option>
-                        <option value="bad">Bad (&lt;7)</option>
-                    </select>
+            <div className="flex flex-wrap justify-between items-end gap-4 mb-6">
+                <div className="flex flex-wrap gap-6">
+                    <div>
+                        <label className="block text-sm text-gray-600 mb-1">Filter by Type</label>
+                        <select
+                            value={filterType}
+                            onChange={(e) => {
+                                setFilterType(e.target.value);
+                                setSelectedRating('');
+                            }}
+                            className="border px-3 py-2 rounded shadow-sm"
+                        >
+                            <option value="all">All</option>
+                            <option value="good">Good (7+)</option>
+                            <option value="bad">Bad (&lt;7)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm text-gray-600 mb-1">Filter by Rating</label>
+                        <select
+                            value={selectedRating}
+                            onChange={(e) => {
+                                setSelectedRating(e.target.value);
+                                setFilterType('all');
+                            }}
+                            className="border px-3 py-2 rounded shadow-sm"
+                        >
+                            <option value="">All Ratings</option>
+                            {[...Array(10)].map((_, i) => (
+                                <option key={i + 1} value={i + 1}>{i + 1}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
-                <div>
-                    <label className="block text-sm text-gray-600 mb-1">Filter by Rating</label>
-                    <select
-                        value={selectedRating}
-                        onChange={(e) => {
-                            setSelectedRating(e.target.value);
-                            setFilterType('all');
+                <div className='flex gap-x-2'>
+                    <JsonToExcel
+                        title="Download Excel"
+                        data={filteredData}
+                        fileName="session_feedback"
+                        btnClassName="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
+                    />
+                    <button
+                        onClick={() => {
+                            const blob = new Blob([JSON.stringify(filteredData, null, 2)], {
+                                type: 'application/json',
+                            });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = 'session_feedback.json';
+                            link.click();
+                            URL.revokeObjectURL(url);
                         }}
-                        className="border px-3 py-2 rounded shadow-sm"
+                        className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
                     >
-                        <option value="">All Ratings</option>
-                        {[...Array(10)].map((_, i) => (
-                            <option key={i + 1} value={i + 1}>{i + 1}</option>
-                        ))}
-                    </select>
+                        Download JSON
+                    </button>
                 </div>
             </div>
 
-            {/* Table */}
             <div className="overflow-x-auto">
                 <table {...getTableProps()} className="min-w-full table-auto border border-gray-300">
                     <thead className="bg-gray-100 text-gray-700">

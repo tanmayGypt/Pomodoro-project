@@ -17,11 +17,13 @@
     "@mui/material": "^7.1.1",
     "@tailwindcss/vite": "^4.1.9",
     "framer": "^2.4.1",
+    "json-export-excel": "^1.0.8",
     "lucide-react": "^0.514.0",
     "motion": "^12.17.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
+    "react-json-to-excel": "^1.0.8",
     "react-router-dom": "^7.6.2",
     "react-table": "^7.8.0",
     "recharts": "^2.15.3"
