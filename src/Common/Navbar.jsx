@@ -28,13 +28,11 @@ const Navbar = () => {
         <nav className="bg-white shadow-sm sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
-                    {/* Logo and brand */}
                     <div className="flex items-center">
                         <FiClock className="h-8 w-8 text-indigo-600" />
                         <span className="ml-2 text-xl font-semibold text-gray-900">FocusFlow</span>
                     </div>
 
-                    {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-8">
                         {navItems.map((item) => (
                             <Link
@@ -49,8 +47,6 @@ const Navbar = () => {
                                 {item.name}
                             </Link>
                         ))}
-
-                        {/* Logout Button */}
                         <button
                             onClick={handleLogout}
                             className="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800"
@@ -60,7 +56,6 @@ const Navbar = () => {
                         </button>
                     </div>
 
-                    {/* Mobile menu button */}
                     <div className="md:hidden flex items-center">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
@@ -72,7 +67,6 @@ const Navbar = () => {
                 </div>
             </div>
 
-            {/* Mobile Navigation */}
             <Transition
                 show={isOpen}
                 enter="transition ease-out duration-100 transform"
@@ -100,8 +94,6 @@ const Navbar = () => {
                                 </div>
                             </Link>
                         ))}
-
-                        {/* Mobile Logout Button */}
                         <button
                             onClick={() => {
                                 setIsOpen(false);

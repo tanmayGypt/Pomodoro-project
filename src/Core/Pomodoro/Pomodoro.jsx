@@ -1,171 +1,144 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import LifeQuotes from '../lifeQuotes';
-import Toast from '../../Common/Toast';
-import alarmSound from '../../../public/alarm.mp3';
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+// import "./alarm.mp3"
 const Pomodoro = () => {
+    const totalTime = 30 * 60;
+    const radius = 90;
+    const circumference = 2 * Math.PI * radius;
+
     const [minutes, setMinutes] = useState(30);
     const [seconds, setSeconds] = useState(0);
     const [isActive, setIsActive] = useState(false);
-    const [isWorking, setIsWorking] = useState(true);
-    const timerRef = useRef(null);
-    const audioRef = useRef(null); // ✅ Fixed: declare audio ref
-    const circumference = 2 * Math.PI * 90;
-
-    const workAnimations = ["👨‍💻 Working...", "📚 Studying...", "✍️ Writing...", "🔍 Researching..."];
-    const breakAnimations = ["🧘 Meditating", "☕ Coffee break", "🌿 Stretching", "🎵 Listening music"];
-    const [currentAnimation, setCurrentAnimation] = useState(workAnimations[0]);
-
+    const [elapsed, setElapsed] = useState(0);
+    const [currentAnimation, setCurrentAnimation] = useState("👨‍💻 Working...");
     const [showFeedback, setShowFeedback] = useState(false);
     const [rating, setRating] = useState('');
     const [review, setReview] = useState('');
-    const [toast, setToast] = useState(null);
+    const audioRef = useRef(null);
+
+    useEffect(() => {
+        if (!isActive) return;
+
+        if (minutes <= 5 && seconds > 0) {
+            if (minutes === 5 && seconds === 59) {
+                setCurrentAnimation("🎉 Break is coming");
+                toast.info("Break time is coming, well done!");
+            } else {
+                setCurrentAnimation("🎉 Break Time!!!!!");
+            }
+        }
+
+        if (minutes === 0 && seconds === 0) {
+            handleSessionEnd();
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            if (seconds > 0) {
+                setSeconds(seconds - 1);
+            } else {
+                setMinutes((prev) => prev - 1);
+                setSeconds(59);
+            }
+            setElapsed((prev) => prev + 1);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [isActive, minutes, seconds]);
+
+    const handleSessionEnd = () => {
+        toast.success("🎉 Congratulations! Session Complete.");
+        setIsActive(false);
+        setShowFeedback(true);
+        setCurrentAnimation("✅ Session Complete!");
+        playAlarm();
+    };
+
+    const toggleTimer = () => {
+        setIsActive((prev) => !prev);
+    };
+
+    const resetTimer = () => {
+        setIsActive(false);
+        setMinutes(30);
+        setSeconds(0);
+        setElapsed(0);
+        setCurrentAnimation("👨‍💻 Working...");
+        setShowFeedback(false);
+        stopAlarm();
+    };
+
+    const handleSubmitFeedback = () => {
+        if (!rating) {
+            toast.error("Please enter a rating between 1 and 10.");
+            return;
+        }
+
+        const existing = JSON.parse(localStorage.getItem("sessionFeedbacks")) || [];
+        const now = new Date();
+
+        const formattedDate = now.toISOString().split('T')[0];
+        const formattedTime = now.toTimeString().split(':').slice(0, 2).join(':');
+
+        existing.push({
+            rating: parseInt(rating),
+            date: formattedDate,
+            time: formattedTime,
+            message: review
+        });
+
+        localStorage.setItem("sessionFeedbacks", JSON.stringify(existing));
+        toast.success("✅ Thank you for your feedback!");
+        setRating('');
+        setReview('');
+        setShowFeedback(false);
+        resetTimer();
+    };
+
+    const getProgressColor = () => (!isActive ? '#10B981' : '#3B82F6');
+
+    const getDashOffset = () => {
+        const progress = elapsed / totalTime;
+        return circumference * (1 - progress);
+    };
 
     const playAlarm = () => {
-        if (audioRef.current) {
-            audioRef.current.currentTime = 0;
-            audioRef.current.play().catch(e => console.log("Audio play failed:", e));
+        try {
+            if (audioRef.current) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play();
+            }
+        } catch (e) {
+            console.error("Audio playback failed:", e);
         }
     };
 
     const stopAlarm = () => {
         if (audioRef.current) {
             audioRef.current.pause();
+            audioRef.current.currentTime = 0;
         }
-    };
-
-    useEffect(() => {
-        if (showFeedback) {
-            playAlarm();
-        }
-    }, [showFeedback]);
-
-    useEffect(() => {
-        if (isActive) {
-            timerRef.current = setInterval(() => {
-                setSeconds(prevSeconds => {
-                    if (prevSeconds === 0) {
-                        if (minutes === 0) {
-                            clearInterval(timerRef.current);
-                            setIsActive(false);
-                            setShowFeedback(true);
-                            return 0;
-                        }
-                        setMinutes(prevMinutes => prevMinutes - 1);
-                        return 59;
-                    }
-                    return prevSeconds - 1;
-                });
-            }, 1000);
-        } else {
-            clearInterval(timerRef.current);
-        }
-
-        return () => clearInterval(timerRef.current);
-    }, [isActive, minutes]);
-
-    useEffect(() => {
-        let blinkInterval;
-
-        if (minutes === 25 || minutes === 4) {
-            const blinkMessage = minutes === 25 ? "⏰ Time to break!" : "⏰ Time to work!";
-            blinkInterval = setInterval(() => {
-                setCurrentAnimation(prev => (prev === '' ? blinkMessage : ''));
-            }, 300);
-        }
-
-        return () => clearInterval(blinkInterval);
-    }, [minutes]);
-
-    const resetTimer = () => {
-        setIsActive(false);
-        setMinutes(30);
-        setSeconds(0);
-        setIsWorking(true);
-        setCurrentAnimation(workAnimations[0]);
-        setShowFeedback(false);
-        setRating('');
-        setReview('');
-    };
-
-    const toggleTimer = () => {
-        setIsActive(!isActive);
-    };
-
-    const getProgressColor = () => {
-        if (minutes >= 25) return '#10B981';
-        if (minutes >= 5) return '#3B82F6';
-        return '#EF4444';
-    };
-
-    const getProgress = () => {
-        const totalSeconds = minutes * 60 + seconds;
-        const remainingPercentage = totalSeconds / (30 * 60);
-        return circumference * (1 - remainingPercentage);
-    };
-
-    const getDashOffset = () => {
-        const progress = getProgress();
-        return progress > circumference ? circumference : progress;
-    };
-
-    const handleSubmitFeedback = () => {
-        if (!rating || rating < 1 || rating > 10) {
-            setToast({
-                message: "Please enter a valid rating between 1 and 10.",
-                type: "error"
-            });
-            return;
-        }
-
-        const now = new Date();
-        const newEntry = {
-            rating: parseInt(rating),
-            date: now.toISOString().split('T')[0],
-            time: now.toTimeString().split(' ')[0].slice(0, 5),
-            message: review || 'No comments.',
-        };
-
-        const storedData = JSON.parse(localStorage.getItem('sessionFeedbacks')) || [];
-        storedData.push(newEntry);
-        localStorage.setItem('sessionFeedbacks', JSON.stringify(storedData));
-        stopAlarm();
-        setToast({
-            message: "Thanks for your feedback!",
-            type: "success"
-        });
-
-        setShowFeedback(false);
-        setRating('');
-        setReview('');
-    };
-
-    const closeToast = () => {
-        setToast(null);
     };
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
             <h1 className="text-3xl font-bold text-gray-800 mb-8">Pomodoro Timer</h1>
-            {showFeedback && (
-                <h1 className="text-3xl font-bold text-red-600 mb-4">⏰ Time's Up!</h1>
-            )}
 
-            {/* ✅ Added audio element */}
-            <audio ref={audioRef} src={alarmSound} />
+            <audio ref={audioRef} src="/alarm.mp3" />
 
             <div className="relative w-64 h-64 mb-8">
-                {/* Timer Circle */}
                 <svg className="w-full h-full" viewBox="0 0 200 200">
-                    <circle cx="100" cy="100" r="90" fill="none" stroke="#E5E7EB" strokeWidth="10" />
+                    <circle cx="100" cy="100" r={radius} fill="none" stroke="#E5E7EB" strokeWidth="10" />
                 </svg>
 
                 <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 200 200">
                     <circle
                         cx="100"
                         cy="100"
-                        r="90"
+                        r={radius}
                         fill="none"
                         stroke={getProgressColor()}
                         strokeWidth="10"
@@ -238,14 +211,7 @@ const Pomodoro = () => {
                 </div>
             )}
 
-            {toast && (
-                <Toast
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={closeToast}
-                />
-            )}
-
+            <ToastContainer />
             <LifeQuotes />
         </div>
     );

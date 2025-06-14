@@ -5,19 +5,17 @@ import { JsonToExcel } from 'react-json-to-excel';
 const SessionHistory = () => {
     const [filterType, setFilterType] = useState('all');
     const [selectedRating, setSelectedRating] = useState('');
-    const [data, setData] = useState(() => {
+    const [data] = useState(() => {
         const stored = localStorage.getItem('sessionFeedbacks');
         return stored ? JSON.parse(stored) : [];
     });
 
-    const filteredData = useMemo(() => {
-        return data.filter((item) => {
-            if (filterType === 'good') return item.rating >= 7;
-            if (filterType === 'bad') return item.rating !== null && item.rating < 7;
-            if (selectedRating) return item.rating === parseInt(selectedRating);
-            return true;
-        });
-    }, [filterType, selectedRating, data]);
+    const filteredData = data.filter((item) => {
+        if (filterType === 'good') return item.rating >= 7;
+        if (filterType === 'bad') return item.rating !== null && item.rating < 7;
+        if (selectedRating) return item.rating === parseInt(selectedRating);
+        return true;
+    });
 
     const columns = useMemo(() => [
         {
@@ -55,7 +53,8 @@ const SessionHistory = () => {
         <div className="max-w-6xl mx-auto mt-10 p-6 bg-white border border-gray-200 rounded shadow-sm">
             <h1 className="text-2xl font-semibold mb-4 text-gray-800">Rating Reviews</h1>
 
-            <div className="flex flex-wrap justify-between items-end gap-4 mb-6">
+            <div className="flex justify-between items-end flex-wrap gap-4 mb-6">
+                {/* Left: Filters */}
                 <div className="flex flex-wrap gap-6">
                     <div>
                         <label className="block text-sm text-gray-600 mb-1">Filter by Type</label>
@@ -85,19 +84,23 @@ const SessionHistory = () => {
                         >
                             <option value="">All Ratings</option>
                             {[...Array(10)].map((_, i) => (
-                                <option key={i + 1} value={i + 1}>{i + 1}</option>
+                                <option key={i + 1} value={i + 1}>
+                                    {i + 1}
+                                </option>
                             ))}
                         </select>
                     </div>
                 </div>
 
-                <div className='flex gap-x-2'>
+                {/* Right: Download Buttons */}
+                <div className="flex gap-3">
                     <JsonToExcel
-                        title="Download Excel"
                         data={filteredData}
                         fileName="session_feedback"
+                        title="Download Excel"
                         btnClassName="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
                     />
+
                     <button
                         onClick={() => {
                             const blob = new Blob([JSON.stringify(filteredData, null, 2)], {
@@ -117,6 +120,8 @@ const SessionHistory = () => {
                 </div>
             </div>
 
+
+            {/* Table */}
             <div className="overflow-x-auto">
                 <table {...getTableProps()} className="min-w-full table-auto border border-gray-300">
                     <thead className="bg-gray-100 text-gray-700">
